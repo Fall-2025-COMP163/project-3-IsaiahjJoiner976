@@ -47,7 +47,23 @@ def create_character(name, character_class):
     # - inventory=[], active_quests=[], completed_quests=[]
     
     # Raise InvalidCharacterClassError if class not in valid list
-    pass
+    char_stats = {"name": name, "class": character_class, "level": 1, "experience": 0}
+    CLASS_STATS = {
+        "Warrior": {"health": 120, "strength": 15, "magic": 5},
+        "Mage":    {"health": 80,  "strength": 8,  "magic": 20},
+        "Rogue":   {"health": 90,  "strength": 12, "magic": 10},
+        "Cleric":  {"health": 100, "strength": 10, "magic": 15},
+    }
+    if character_class not in CLASS_STATS:
+        raise InvalidCharacterClassError(f"ERROR: Invalid {character_class} Class")
+    base_stats = CLASS_STATS[character_class]
+    char_stats.update(base_stats)
+    char_stats["max_health"] = char_stats["health"]
+    char_stats["gold"] = 100
+    char_stats["inventory"] = []
+    char_stats["active_quests"] = []
+    char_stats["completed_quests"] = []
+    return char_stats
 
 def save_character(character, save_directory="data/save_games"):
     """
