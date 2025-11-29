@@ -92,7 +92,33 @@ def save_character(character, save_directory="data/save_games"):
     # Create save_directory if it doesn't exist
     # Handle any file I/O errors appropriately
     # Lists should be saved as comma-separated values
-    pass
+    char_name = character["name"]
+    file_name = f"{char_name.lower()}_save.txt"
+    full_path = os.path.join(save_directory, file_name)
+
+    try:
+        os.makedirs(save_directory, exist_ok=True)
+    except PermissionError:
+        raise PermissionError(f"Permission denied while attempting to create directory: {save_directory}")
+    order = ["name", "class", "level", "health", "max_health", "strength", "magic", "experience", "gold", "inventory", "active_quests", "completed_quests"]
+    output_lines = []
+    for key in order:
+        try:
+            value = character[key]
+        except KeyError as e:
+            raise KeyError(f"Character data is missing the required key {e}. Cannot save.")
+        if isinstance(value, list):
+            string_list = [str(item) for item in value]
+            value_str = ",".join(string_list)
+        else:
+            value_str = str(value)
+        output_lines.append(f"{key.upper()}:{value_str}")
+    try:
+        with open(full_path, 'w') as file:
+            file.write('\n'.join(output_lines))
+    except IOError as e:
+        raise IOError(f"Error writing save file to {full_path}: {e}")
+    return True
 
 def load_character(character_name, save_directory="data/save_games"):
     """
