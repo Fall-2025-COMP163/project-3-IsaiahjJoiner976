@@ -139,6 +139,50 @@ def load_character(character_name, save_directory="data/save_games"):
     # Try to read file → SaveFileCorruptedError
     # Validate data format → InvalidSaveDataError
     # Parse comma-separated lists back into Python lists
+    LIST_KEYS = {"INVENTORY", "ACTIVE_QUESTS", "COMPLETED_QUESTS"}
+    INT_KEYS = {"LEVEL", "HEALTH", "MAX_HEALTH", "STRENGTH", "MAGIC", "EXPERIENCE", "GOLD"}
+    file_name = f"{character_name.lower()}_save.txt"
+    full_path = os.path.join(save_directory, file_name)
+    
+    if not os.path.exists(full_path):
+        raise CharacterNotFoundError(f"No save file found for character: {character_name}")
+
+    try:
+        with open(full_path, 'r') as file:
+            lines = file.readlines()
+    except IOError as e:
+        raise SaveFileCorruptedError(f"Error reading save file for {character_name}: {e}")
+        
+    char_data = {}
+    for line_num, line in enumerate(lines, 1):
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            key_upper, value_str = line.split(':', 1)
+            key = key_upper.lower()
+            value_str = value_str.strip()
+        except ValueError:
+            raise InvalidSaveDataError(f"Corrupted format in save file line {line_num}: {line}")
+        try:
+            if key_upper in LIST_KEYS:
+                if value_str:
+                    value = value_str.split(',')
+                else:
+                    value = []
+            elif key_upper in INT_KEYS:
+                value = int(value_str)
+            else:
+                value = value_str
+        except ValueError:
+            raise InvalidSaveDataError(f"Data type error for key '{key_upper}' in save file. Expected integer, got: '{value_str}'")
+         char_data[key] = value
+
+    needed_keys = ["name", "class", "health", "max_health"]
+    if not all(key in char_data for key in required_keys):
+        raise InvalidSaveDataError(f"Missing essential data keys in file for {character_name}.")
+
+    return char_data
     pass
 
 def list_saved_characters(save_directory="data/save_games"):
