@@ -176,7 +176,7 @@ def load_character(character_name, save_directory="data/save_games"):
                 value = value_str
         except ValueError:
             raise InvalidSaveDataError(f"Data type error for key '{key_upper}' in save file. Expected integer, got: '{value_str}'")
-         char_data[key] = value
+        char_data[key] = value
 
     needed_keys = ["name", "class", "health", "max_health"]
     if not all(key in char_data for key in required_keys):
