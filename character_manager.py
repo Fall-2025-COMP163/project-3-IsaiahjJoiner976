@@ -93,7 +93,7 @@ def save_character(character, save_directory="data/save_games"):
     # Handle any file I/O errors appropriately
     # Lists should be saved as comma-separated values
     char_name = character["name"]
-    file_name = f"{char_name.lower()}_save.txt"
+    file_name = f"{character_name.lower().replace(" ", "_")}_save.txt"
     full_path = os.path.join(save_directory, file_name)
 
     try:
@@ -141,7 +141,7 @@ def load_character(character_name, save_directory="data/save_games"):
     # Parse comma-separated lists back into Python lists
     LIST_KEYS = {"INVENTORY", "ACTIVE_QUESTS", "COMPLETED_QUESTS"}
     INT_KEYS = {"LEVEL", "HEALTH", "MAX_HEALTH", "STRENGTH", "MAGIC", "EXPERIENCE", "GOLD"}
-    file_name = f"{character_name.lower()}_save.txt"
+    file_name = f"{character_name.lower().replace(" ", "_")}_save.txt"
     full_path = os.path.join(save_directory, file_name)
     
     if not os.path.exists(full_path):
@@ -202,9 +202,9 @@ def list_saved_characters(save_directory="data/save_games"):
     except Exception:
         return []
     character_names = []
-    for filename in filenames:
+    for file_name in file_names:
         if filename.endswith("_save.txt"):
-            underscore_names = filename[:-9]
+            underscore_names = fil_ename[:-9]
             space_names = underscore_names.replace("_", " ")
             character_names.append(space_names.title())
     return character_names
@@ -218,7 +218,15 @@ def delete_character(character_name, save_directory="data/save_games"):
     """
     # TODO: Implement character deletion
     # Verify file exists before attempting deletion
-    pass
+    file_name = f"{character_name.lower().replace(" ", "_")}_save.txt"
+    full_path = os.path.join(save_directory, file_name)
+    if not os.path.exists(full_path):
+        raise CharacterNotFoundError(f"Character save file not found for: {character_name}")
+    try:
+        os.remove(full_path)
+    except OSError as e:
+        raise OSError(f"Could not delete file at {full_path}. Details: {e}")
+    return True
 
 # ============================================================================
 # CHARACTER OPERATIONS
@@ -243,7 +251,21 @@ def gain_experience(character, xp_amount):
     # Add experience
     # Check for level up (can level up multiple times)
     # Update stats on level up
-    pass
+    if character["health"] <= 0:
+        raise CharacterDeadError(f"{character["name"]} is dead and cannot gain experience.")
+    character["experience"] += xp_amount
+    while True:
+        current_level = character["level"]
+        level_up_xp = current_level * 100
+        if character["experience"] < level_up_xp:
+            break
+        character["level"] += 1
+        character["max_health"] += 10
+        character["strength"] += 2
+        character["magic"] += 2
+        character["health"] == character["max_health"]
+        print(f"{character["name"]} has reached level {character["level"]}!")
+    return character
 
 def add_gold(character, amount):
     """
