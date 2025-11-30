@@ -179,7 +179,7 @@ def load_character(character_name, save_directory="data/save_games"):
         char_data[key] = value
 
     needed_keys = ["name", "class", "health", "max_health"]
-    if not all(key in char_data for key in required_keys):
+    if not all(key in char_data for key in needed_keys):
         raise InvalidSaveDataError(f"Missing essential data keys in file for {character_name}.")
 
     return char_data
@@ -194,7 +194,20 @@ def list_saved_characters(save_directory="data/save_games"):
     # TODO: Implement this function
     # Return empty list if directory doesn't exist
     # Extract character names from filenames
-    pass
+    if not os.path.exists(save_directory):
+        return []
+
+    try:
+        filenames = os.listdir(save_directory)
+    except Exception:
+        return []
+    character_names = []
+    for filename in filenames:
+        if filename.endswith("_save.txt"):
+            underscore_names = filename[:-9]
+            space_names = underscore_names.replace("_", " ")
+            character_names.append(space_names.title())
+    return character_names
 
 def delete_character(character_name, save_directory="data/save_games"):
     """
