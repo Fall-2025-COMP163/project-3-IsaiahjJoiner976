@@ -81,6 +81,10 @@ class SimpleBattle:
         # Store character and enemy
         # Set combat_active flag
         # Initialize turn counter
+        self.character = character
+        self.enemy = enemy
+        self.combat_active = True
+        self.turn_count = 0
         pass
     
     def start_battle(self):
@@ -96,6 +100,12 @@ class SimpleBattle:
         # Check character isn't dead
         # Loop until someone dies
         # Award XP and gold if player wins
+        if is_character_dead(self.character) == True:
+            raise CharacterDeadError(f"ERROR: Character is already dead.")
+        while self.combat_active:
+            self.turn_count += 1
+            
+            
         pass
     
     def player_turn(self):
