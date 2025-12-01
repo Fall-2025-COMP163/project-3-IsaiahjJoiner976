@@ -93,7 +93,7 @@ def save_character(character, save_directory="data/save_games"):
     # Handle any file I/O errors appropriately
     # Lists should be saved as comma-separated values
     char_name = character["name"]
-    file_name = f"{character_name.lower().replace(" ", "_")}_save.txt"
+    file_name = f"{char_name.lower().replace(" ", "_")}_save.txt"
     full_path = os.path.join(save_directory, file_name)
 
     try:
