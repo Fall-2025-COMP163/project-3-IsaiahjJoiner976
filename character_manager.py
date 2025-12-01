@@ -372,7 +372,7 @@ def validate_character_data(character):
     for key in required_keys:
         if key not in character:
             raise InvalidSaveDataError(f"Missing required field: '{key}'")
-    for key, expected_type in required_key.items():
+    for key, expected_type in required_keys.items():
         value = character[key]
         if not isinstance(value, expected_type):
             raise InvalidSaveDataError(f"Invalid type for field '{key}'.")
