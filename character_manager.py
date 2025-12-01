@@ -198,13 +198,13 @@ def list_saved_characters(save_directory="data/save_games"):
         return []
 
     try:
-        filenames = os.listdir(save_directory)
+        file_names = os.listdir(save_directory)
     except Exception:
         return []
     character_names = []
     for file_name in file_names:
-        if filename.endswith("_save.txt"):
-            underscore_names = fil_ename[:-9]
+        if file_name.endswith("_save.txt"):
+            underscore_names = file_name[:-9]
             space_names = underscore_names.replace("_", " ")
             character_names.append(space_names.title())
     return character_names
@@ -252,7 +252,7 @@ def gain_experience(character, xp_amount):
     # Check for level up (can level up multiple times)
     # Update stats on level up
     if character["health"] <= 0:
-        raise CharacterDeadError(f"{character["name"]} is dead and cannot gain experience.")
+        raise CharacterDeadError(f"{character['name']} is dead and cannot gain experience.")
     character["experience"] += xp_amount
     while True:
         current_level = character["level"]
@@ -263,7 +263,7 @@ def gain_experience(character, xp_amount):
         character["max_health"] += 10
         character["strength"] += 2
         character["magic"] += 2
-        character["health"] == character["max_health"]
+        character["health"] = character["max_health"]
         print(f"{character["name"]} has reached level {character["level"]}!")
     return character
 
@@ -281,7 +281,11 @@ def add_gold(character, amount):
     # TODO: Implement gold management
     # Check that result won't be negative
     # Update character's gold
-    pass
+    new_total = character["gold"] + amount
+    if new_total < 0:
+        raise ValueError(f"{character['name']} doesn't have enough gold.")
+    character["gold"] = new_total
+    return new_total
 
 def heal_character(character, amount):
     """
@@ -294,7 +298,17 @@ def heal_character(character, amount):
     # TODO: Implement healing
     # Calculate actual healing (don't exceed max_health)
     # Update character health
-    pass
+    original_health = character["health"]
+    max_health = character["max_health"]
+    potential_health = original_health + amount
+    if potential_health > max_health:
+        final_health = max_health
+    else:
+        final_health = potential_health
+        
+    character["health"] = final_health
+    heal_amount = final_health - original_health
+    return heal_amount
 
 def is_character_dead(character):
     """
@@ -303,6 +317,10 @@ def is_character_dead(character):
     Returns: True if dead, False if alive
     """
     # TODO: Implement death check
+    if character["health"] <= 0:
+        return True
+    else:
+        return False
     pass
 
 def revive_character(character):
@@ -313,7 +331,10 @@ def revive_character(character):
     """
     # TODO: Implement revival
     # Restore health to half of max_health
-    pass
+    max = character["max_health"]
+    rev_health = max // 2
+    character["health"] = rev_health
+    return True
 
 # ============================================================================
 # VALIDATION
@@ -334,7 +355,28 @@ def validate_character_data(character):
     # Check all required keys exist
     # Check that numeric values are numbers
     # Check that lists are actually lists
-    pass
+    required_keys = {
+        "name": str,
+        "class": str,
+        "level": int,
+        "health": int,
+        "max_health": int, 
+        "strength": int,
+        "magic": int,
+        "experience": int, 
+        "gold": int,
+        "inventory": list, 
+        "active_quests": list,
+        "completed_quests": list
+    }
+    for key in required_keys:
+        if key not in character:
+            raise InvalidSaveDataError(f"Missing required field: '{key}'")
+    for key, expected_type in required_key.items():
+        value = character[key]
+        if not isinstance(value, expected_type):
+            raise InvalidSaveDataError(f"Invalid type for field '{key}'.")
+    return True
 
 # ============================================================================
 # TESTING
