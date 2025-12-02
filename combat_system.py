@@ -102,9 +102,15 @@ class SimpleBattle:
         # Award XP and gold if player wins
         if self.character['health'] <= 0:
             raise CharacterDeadError(f"ERROR: Character is already dead.")
+        self.combat_active = True
+        self.turn_count = 0
+        escaped = "No"
         while self.combat_active:
             self.turn_count += 1
             self.player_turn()
+            if not self.combat_active:
+                escaped = "Yes"
+                break
             if self.enemy['health'] <= 0:
                 self.combat_active = False
                 break
@@ -112,22 +118,26 @@ class SimpleBattle:
             if self.character['health'] <= 0:
                 self.combat_active = False
                 break
-        if self.character['health'] > 0:
+        if self.character['health'] > 0 and escaped == "No":
             winner = "player"
             xp_gained = self.enemy["xp_reward"]
             gold_gained = self.enemy["gold_reward"]
-            self.character.gain_experience(self.character, xp_gained)
-            self.character.add_gold(self.character, gold_gained)
-        else:
+            return {
+                "winner": winner,
+                "xp_gained": xp_gained,
+                "gold_gained": gold_gained
+            }
+        elif self.character['health'] < 0:
             winner = "enemy"
             xp_gained = 0
             gold_gained = 0
-
-        return {
-            "winner": winner,
-            "xp_gained": xp_gained,
-            "gold_gained": gold_gained
-        }
+            return {
+                "winner": winner,
+                "xp_gained": xp_gained,
+                "gold_gained": gold_gained
+            }
+        else:
+            return "You got away safely!"
     
     def player_turn(self):
         """
@@ -181,6 +191,7 @@ class SimpleBattle:
             escaped = self.attempt_escape()
             if escaped:
                 print(f"{self.character['name']} successfully escaped the battle!")
+                self.combat_active = False
             else:
                 print(f"{self.character['name']} failed to escape the battle!")
         pass
@@ -409,26 +420,25 @@ if __name__ == "__main__":
     print("=== COMBAT SYSTEM TEST ===")
     
     # Test enemy creation
-    # try:
-    #     goblin = create_enemy("goblin")
-    #     print(f"Created {goblin['name']}")
-    # except InvalidTargetError as e:
-    #     print(f"Invalid enemy: {e}")
+    try:
+        goblin = create_enemy("goblin")
+        print(f"Created {goblin['name']}")
+    except InvalidTargetError as e:
+        print(f"Invalid enemy: {e}")
     
     # Test battle
-    # test_char = {
-    #     'name': 'Hero',
-    #     'class': 'Warrior',
-    #     'health': 120,
-    #     'max_health': 120,
-    #     'strength': 15,
-    #     'magic': 5
-    # }
-    #
-    # battle = SimpleBattle(test_char, goblin)
-    # try:
-    #     result = battle.start_battle()
-    #     print(f"Battle result: {result}")
-    # except CharacterDeadError:
-    #     print("Character is dead!")
-
+    test_char = {
+        'name': 'Hero',
+        'class': 'Warrior',
+        'health': 120,
+        'max_health': 120,
+        'strength': 15,
+        'magic': 5
+    }
+    
+    battle = SimpleBattle(test_char, goblin)
+    try:
+        result = battle.start_battle()
+        print(f"Battle result: {result}")
+    except CharacterDeadError:
+        print("Character is dead!")
