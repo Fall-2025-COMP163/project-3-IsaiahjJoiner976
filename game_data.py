@@ -137,7 +137,7 @@ def load_items(filename="data/items.txt"):
                     raise InvalidDataFormatError(f"Corrupted key-value line in item block: {line}")
         missing_keys = [key for key in required_keys if key not in item_data]
         if missing_keys:
-            raise InvalidDataFormatError(f"Missing required keys in an item block: {', '.join(missing_keys)}")
+            raise InvalidDataFormatError(f"Missing required keys: {', '.join(missing_keys)}")
         item_id = item_data['ITEM_ID']
         if item_id in all_items:
             raise InvalidDataFormatError(f"Duplicate item ID found: {item_id}")
@@ -178,7 +178,7 @@ def validate_quest_data(quest_dict):
     num_keys = ["REWARD_XP", "REWARD_GOLD", "REQUIRED_LEVEL",]
     missing_keys = [key for key in required_keys if key not in quest_dict]
     if missing_keys:
-        raise InvalidDataFormatError(f"Missing required keys in an item block: {', '.join(missing_keys)}")
+        raise InvalidDataFormatError(f"Missing required keys: {', '.join(missing_keys)}")
     
     for key in num_keys:
         value = quest_dict[key]
@@ -204,7 +204,19 @@ def validate_item_data(item_dict):
     Raises: InvalidDataFormatError if missing required fields or invalid type
     """
     # TODO: Implement validation
-    pass
+    required_keys = ["item_id", "name", "type", "effect", "cost", "description"]
+    valid_types = ["weapons", "armor", "consumable"]
+    
+
+    missing_keys = [key for key in required_keys if key not in item_dict]
+    if missing_keys:
+        raise InvalidDataFormatError(f"Missing required keys: {', '.join(missing_keys)}")
+    
+    item_type = item_dict['TYPE'].lower()
+    if item_type not in valid_types:
+        valid_options = ', '.join(valid_types)
+        raise InvalidDataFormatError(f"Invalid item TYPE '{item_dict['TYPE']}'. Must be one of: {valid_options}")
+    return True
 
 def create_default_data_files():
     """
