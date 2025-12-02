@@ -107,9 +107,59 @@ def load_items(filename="data/items.txt"):
     """
     # TODO: Implement this function
     # Must handle same exceptions as load_quests
-    
+    required_keys = ["ITEM_ID", "NAME", "TYPE", "EFFECT", "COST", "DESCRIPTION"]
+    all_items = {}
 
-    pass
+    try:
+        with open(filename, 'r') as file:
+            file_content = file.read()
+    except FileNotFoundError:
+        raise MissingDataFileError(f"Item file not found at: {filename}")
+    except IOError as e:
+        raise CorruptedDataError(f"Could not read item file: {e}")
+    item_blocks = []
+    raw_blocks = file_content.split('\n\n')
+    for block in raw_blocks:
+        clean_block = block.strip()
+        if clean_block:
+            item_blocks.append(clean_block)
+    for block in item_blocks:
+        item_data = {}
+        lines = block.split('\n')
+        for line in lines:
+            if ":" in line:
+                try:
+                    key, value_text = line.split(":", 1)
+                    key = key.strip()
+                    value = value_text.strip()
+                    item_data[key] = value
+                except ValueError:
+                    raise InvalidDataFormatError(f"Corrupted key-value line in item block: {line}")
+        missing_keys = [key for key in required_keys if key not in item_data]
+        if missing_keys:
+            raise InvalidDataFormatError(f"Missing required keys in an item block: {', '.join(missing_keys)}")
+        item_id = item_data['ITEM_ID']
+        if item_id in all_items:
+            raise InvalidDataFormatError(f"Duplicate item ID found: {item_id}")
+        
+        try: 
+            item_data['COST'] = int(item_data['COST'])
+        except ValueError:
+            raise InvalidDataFormatError(f"Non-integer value found for COST in item: {item_id}")
+        effect_string = item_data['EFFECT']
+        if ":" not in effect_string:
+            raise InvalidDataFormatError(f"Invalid EFFECT format in item {item_id}. Must be 'stat:value'.")
+        try:
+            effect_stat, effect_value = effect_string.split(":", 1)
+            item_data['EFFECT'] = {
+                "stat": effect_stat.strip(),
+                "value": int(effect_value.strip())
+            }
+        except ValueError:
+            raise InvalidDataFormatError(f"Non-integer value found in EFFECT for item: {item_id}")
+        del item_data['ITEM_ID']
+        all_items[item_id] = item_data
+    return all_items
 
 def validate_quest_data(quest_dict):
     """
