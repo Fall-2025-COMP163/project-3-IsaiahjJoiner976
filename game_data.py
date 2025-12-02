@@ -41,7 +41,54 @@ def load_quests(filename="data/quests.txt"):
     # - FileNotFoundError → raise MissingDataFileError
     # - Invalid format → raise InvalidDataFormatError
     # - Corrupted/unreadable data → raise CorruptedDataError
-    pass
+    required_keys = ["QUEST_ID", "TITLE", "DESCRIPTION", "REWARD_XP", "REWARD_GOLD", "REQUIRED_LEVEL", "PREREQUISITE"]
+    all_quests = {}
+    try:
+        with open(filename, 'r') as file:
+            file_content = file.read()
+    except FileNotFoundError:
+        raise MissingDataFileError(f"Quest file not found at: {filename}")
+    except IOError as e:
+        raise CorruptedDataError(f"Could not read quest file: {e}")
+    quest_blocks = []
+    raw_blocks = file_content.split('\n\n')
+    for block in raw_blocks:
+        clean_block = block.strip()
+        if clean_block:
+            quest_blocks.append(clean_block)
+
+    for block in quest_blocks:
+        quest_data = {}
+        lines = block.split('\n')
+        for line in lines:
+            if ":" in line:
+                try:
+                    key, value_text = line.split(":", 1)
+                    key = key.strip()
+                    value = value_text.strip()
+                    quest_data[key] = value
+                except ValueError:
+                    raise InvalidDataFormatError(f"Corrupted key-value line in quest block: {line}")
+        if required_keys - set(quest_data.keys()):
+            # Suggested by Google Gemini due to my code being flawed and stopping on the first missing key. This goes through and collects all of them.
+            missing_keys = [key for key in required_keys if key not in quest_data]
+            if missing_keys:
+                    raise InvalidDataFormatError(f"Missing required keys in a quest block: {','.join(missing_keys)}")
+        quest_id = quest_data['QUEST_ID']
+        if quest_id in all_quests:
+            raise InvalidDataFormatError(f"Duplicate quest id found: {quest_id}")
+        try:
+            quest_data['REWARD_XP'] = int(quest_data['REWARD_XP'])
+            quest_data['REWARD_GOLD'] = int(quest_data['REWARD_GOLD'])
+            quest_data['REQUIRED_LEVEL'] = int(quest_data['REQUIRED_LEVEL'])
+        except ValueError:
+            raise InvalidDataFormatError(f"Non-integer value found for XP, GOLD, or LEVEL in quest: {quest_id}")
+        if quest_data['PREREQUISITE'].upper() == 'NONE':
+            quest_data['PREREQUISITE'] = None
+            # Google Gemini suggested for redundancy.
+            del quest_data['QUEST_ID']
+        all_quests[quest_id] = quest_data
+    return all_quests
 
 def load_items(filename="data/items.txt"):
     """
@@ -60,6 +107,8 @@ def load_items(filename="data/items.txt"):
     """
     # TODO: Implement this function
     # Must handle same exceptions as load_quests
+    
+
     pass
 
 def validate_quest_data(quest_dict):
