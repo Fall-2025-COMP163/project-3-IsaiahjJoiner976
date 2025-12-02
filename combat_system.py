@@ -35,9 +35,9 @@ def create_enemy(enemy_type):
     # TODO: Implement enemy creation
     # Return dictionary with: name, health, max_health, strength, magic, xp_reward, gold_reward
     enemy_stats = {
-        "Goblin": {"name": "Goblin", "health": 50, "max_health": 50, "strength": 8, "magic": 2, "xp_reward": 25, "gold_reward": 10},
-        "Orc":    {"name": "Orc", "health": 80, "max_health": 80,  "strength": 12,  "magic": 5, "xp_reward": 50, "gold_reward": 25},
-        "Dragon":   {"name": "Dragon", "health": 200, "max_health": 200,  "strength": 25, "magic": 15, "xp_reward": 200, "gold_reward": 100}
+        "goblin": {"name": "Goblin", "health": 50, "max_health": 50, "strength": 8, "magic": 2, "xp_reward": 25, "gold_reward": 10},
+        "orc":    {"name": "Orc", "health": 80, "max_health": 80,  "strength": 12,  "magic": 5, "xp_reward": 50, "gold_reward": 25},
+        "dragon":   {"name": "Dragon", "health": 200, "max_health": 200,  "strength": 25, "magic": 15, "xp_reward": 200, "gold_reward": 100}
     }
     if enemy_type not in enemy_stats:
         raise InvalidTargetError(f"ERROR: Invalid {enemy_type} enemy type.")
