@@ -174,7 +174,24 @@ def validate_quest_data(quest_dict):
     # TODO: Implement validation
     # Check that all required keys exist
     # Check that numeric values are actually numbers
-    pass
+    required_keys = ["QUEST_ID", "TITLE", "DESCRIPTION", "REWARD_XP", "REWARD_GOLD", "REQUIRED_LEVEL", "PREREQUISITE"]
+    num_keys = ["REWARD_XP", "REWARD_GOLD", "REQUIRED_LEVEL",]
+    missing_keys = [key for key in required_keys if key not in quest_dict]
+    if missing_keys:
+        raise InvalidDataFormatError(f"Missing required keys in an item block: {', '.join(missing_keys)}")
+    
+    for key in num_keys:
+        value = quest_dict[key]
+        try:
+            quest_dict[key] = int(value)
+        except ValueError:
+            raise InvalidDataFormatError(f"Value for '{key}' must be an integer, found '{value}'")
+    
+    prereq_value = quest_dict['PREREQUISITE']
+    if isinstance(prereq_value, str) and prereq_value.upper() == "NONE":
+        quest_dict['PREREQUISITE'] = None
+    
+    return True
 
 def validate_item_data(item_dict):
     """
