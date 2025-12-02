@@ -83,7 +83,8 @@ class SimpleBattle:
         # Initialize turn counter
         self.character = character
         self.enemy = enemy
-        self.combat_active = True
+        if 'combat_active' not in self.character:
+            self.character['combat_active'] = False
         self.turn_count = 0
         pass
     
@@ -102,21 +103,21 @@ class SimpleBattle:
         # Award XP and gold if player wins
         if self.character['health'] <= 0:
             raise CharacterDeadError(f"ERROR: Character is already dead.")
-        self.combat_active = True
+        self.character['combat_active'] = True
         self.turn_count = 0
         escaped = "No"
-        while self.combat_active:
+        while self.character['combat_active']:
             self.turn_count += 1
             self.player_turn()
-            if not self.combat_active:
+            if self.character['combat_active'] == False:
                 escaped = "Yes"
                 break
             if self.enemy['health'] <= 0:
-                self.combat_active = False
+                self.character['combat_active'] = False
                 break
             self.enemy_turn()
             if self.character['health'] <= 0:
-                self.combat_active = False
+                self.character['combat_active'] = False
                 break
         if self.character['health'] > 0 and escaped == "No":
             winner = "player"
@@ -137,7 +138,13 @@ class SimpleBattle:
                 "gold_gained": gold_gained
             }
         else:
-            return "You got away safely!"
+            xp_gained = 0
+            gold_gained = 0
+            return {
+                "winner": "escaped",
+                "xp_gained": xp_gained,
+                "gold_gained": gold_gained
+            }
     
     def player_turn(self):
         """
@@ -155,7 +162,7 @@ class SimpleBattle:
         # Display options
         # Get player choice
         # Execute chosen action
-        if self.combat_active == False:
+        if self.character['combat_active'] == False:
             raise CombatNotActiveError(f"ERROR: {self.character['name']} is not in combat.")
         print("\n--- It's your turn! ---")
         is_special_ready = self.turn_count % 2 == 0 and self.turn_count > 0
@@ -191,7 +198,7 @@ class SimpleBattle:
             escaped = self.attempt_escape()
             if escaped:
                 print(f"{self.character['name']} successfully escaped the battle!")
-                self.combat_active = False
+                self.character['combat_active'] = False
             else:
                 print(f"{self.character['name']} failed to escape the battle!")
         pass
@@ -208,7 +215,7 @@ class SimpleBattle:
         # Check combat is active
         # Calculate damage
         # Apply to character
-        if self.combat_active == False:
+        if self.character['combat_active'] == False:
             raise CombatNotActiveError(f"ERROR: {self.character['name']} is not in combat.")
             
         print(f"\n--- {self.enemy['name']}'s Turn ---")
@@ -261,10 +268,10 @@ class SimpleBattle:
         """
         # TODO: Implement battle end check
         if self.enemy['health'] <= 0:
-            self.combat_active = False
+            self.character['combat_active'] = False
             return 'player'
         if self.character['health'] <= 0:
-            self.combat_active = False
+            self.character['combat_active'] = False
             return 'enemy'
         return None
     
@@ -280,7 +287,7 @@ class SimpleBattle:
         # Use random number or simple calculation
         # If successful, set combat_active to False
         if random.random() < 0.5:
-            self.combat_active = False
+            self.character['combat_active'] = False
             return True
         else: 
             return False
@@ -382,7 +389,12 @@ def can_character_fight(character):
     Returns: True if health > 0 and not in battle
     """
     # TODO: Implement fight check
-    pass
+    is_alive = character['health'] > 0
+    # Google Gemini suggest this based on the possible lack of a combat_active key in other iteration of a character
+    is_not_in_battle = character.get('combat_active', False) == False
+
+    return is_alive and is_not_in_battle
+    
 
 def get_victory_rewards(enemy):
     """
@@ -391,7 +403,12 @@ def get_victory_rewards(enemy):
     Returns: Dictionary with 'xp' and 'gold'
     """
     # TODO: Implement reward calculation
-    pass
+    xp_gained = enemy['xp_reward']
+    gold_gained = enemy['gold_reward']
+    return {
+        'xp': xp_gained,
+        'gold': gold_gained
+    }
 
 def display_combat_stats(character, enemy):
     """
