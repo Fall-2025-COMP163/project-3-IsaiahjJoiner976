@@ -53,7 +53,27 @@ def accept_quest(character, quest_id, quest_data_dict):
     # Check not already completed
     # Check not already active
     # Add to character['active_quests']
-    pass
+    if quest_id not in quest_data_dict:
+        raise QuestNotFoundError(f"Quest ID {quest_id} not found.")
+    
+    if is_quest_completed(character, quest_id):
+        raise QuestAlreadyCompletedError(f"Quest '{quest_id}' is already completed.")
+    
+    if is_quest_active(character, quest_id):
+        raise QuestNotActiveError(f"Quest '{quest_id}' is already active.")
+    
+    required_level = quest_data_dict.get('required_level', 1)
+    if character.get('level', 1) < required_level:
+        raise InsufficientLevelError(f"Character level {character.get('level', 1)} is too low. Required level: {required_level}.")
+    
+    prerequisite_id = quest_data_dict.get('prerequisite', 'NONE')
+    if prerequisite_id != 'NONE' and not is_quest_completed(character, prerequisite_id):
+        if prerequisite_id not in quest_data_dict:
+             raise QuestNotFoundError(f"Prerequisite Quest ID '{prerequisite_id}' not found in game data.")
+        prereq_title = quest_data_dict[prerequisite_id].get('title', prerequisite_id)
+        raise QuestRequirementsNotMetError(f"Prerequisite quest '{prereq_title}' must be completed first.")
+    character['active_quests'].append(quest_id)
+    return True
 
 def complete_quest(character, quest_id, quest_data_dict):
     """
@@ -306,7 +326,13 @@ def display_quest_info(quest_data):
     print(f"\n=== {quest_data['title']} ===")
     print(f"Description: {quest_data['description']}")
     # ... etc
-    pass
+    print(f"  Level: {quest_data.get('required_level', 1)}")
+    prereq = quest_data.get('prerequisite', 'NONE')
+    print(f"  Prerequisite: {prereq}")
+    
+    print("\n**Rewards:**")
+    print(f"  XP: {quest_data.get('reward_xp', 0)}")
+    print(f"  Gold: {quest_data.get('reward_gold', 0)}")
 
 def display_quest_list(quest_list):
     """
@@ -315,7 +341,18 @@ def display_quest_list(quest_list):
     Shows: Title, Required Level, Rewards
     """
     # TODO: Implement quest list display
-    pass
+    if not quest_list:
+        print("No quests to display.")
+        return
+    # Suggested detail from Gemini
+    print("\n| Title | Req. Level | XP Reward | Gold Reward |")
+    print("| :--- | :---: | :---: | :---: |")
+    for quest in quest_list:
+        title = quest.get('title', 'N/A')
+        level = quest.get('required_level', 1)
+        xp = quest.get('reward_xp', 0)
+        gold = quest.get('reward_gold', 0)
+        print(f"| {title} | {level} | {xp} | {gold} |")
 
 def display_character_quest_progress(character, quest_data_dict):
     """
@@ -328,7 +365,18 @@ def display_character_quest_progress(character, quest_data_dict):
     - Total rewards earned
     """
     # TODO: Implement progress display
-    pass
+    active_count = len(character.get('active_quests', []))
+    completed_count = len(character.get('completed_quests', []))
+    
+    percentage = get_quest_completion_percentage(character, quest_data_dict)
+    rewards = get_total_quest_rewards_earned(character, quest_data_dict)
+    
+    print("\n--- 🗺️ Quest Progress Summary ---")
+    print(f"**Active Quests:** {active_count}")
+    print(f"**Completed Quests:** {completed_count}")
+    print(f"**Completion Percentage:** {percentage}%")
+    print(f"**Total XP Earned:** {rewards['total_xp']}")
+    print(f"**Total Gold Earned:** {rewards['total_gold']}")
 
 # ============================================================================
 # VALIDATION
@@ -346,6 +394,12 @@ def validate_quest_prerequisites(quest_data_dict):
     # TODO: Implement prerequisite validation
     # Check each quest's prerequisite
     # Ensure prerequisite exists in quest_data_dict
+    for quest_id, quest_data in quest_data_dict.items():
+        prereq_id = quest_data.get('prerequisite', 'NONE')
+        if prereq_id != 'NONE' and prereq_id not in quest_data_dict:
+            raise QuestNotFoundError(f"Quest '{quest_id}' has an invalid prerequisite: '{prereq_id}' is not a known quest ID.")
+            
+    return True
     pass
 
 
