@@ -55,18 +55,18 @@ def accept_quest(character, quest_id, quest_data_dict):
     # Add to character['active_quests']
     if quest_id not in quest_data_dict:
         raise QuestNotFoundError(f"Quest ID {quest_id} not found.")
-    
+    quest_data = quest_data_dict[quest_id]
     if is_quest_completed(character, quest_id):
         raise QuestAlreadyCompletedError(f"Quest '{quest_id}' is already completed.")
     
     if is_quest_active(character, quest_id):
         raise QuestNotActiveError(f"Quest '{quest_id}' is already active.")
     
-    required_level = quest_data_dict.get('required_level', 1)
+    required_level = quest_data.get('required_level', 1)
     if character.get('level', 1) < required_level:
         raise InsufficientLevelError(f"Character level {character.get('level', 1)} is too low. Required level: {required_level}.")
     
-    prerequisite_id = quest_data_dict.get('prerequisite', 'NONE')
+    prerequisite_id = quest_data.get('prerequisite', 'NONE')
     if prerequisite_id != 'NONE' and not is_quest_completed(character, prerequisite_id):
         if prerequisite_id not in quest_data_dict:
              raise QuestNotFoundError(f"Prerequisite Quest ID '{prerequisite_id}' not found in game data.")
@@ -103,7 +103,7 @@ def complete_quest(character, quest_id, quest_data_dict):
     if quest_id not in quest_data_dict:
         raise QuestNotFoundError(f"{quest_id} not found.")
     if quest_id not in character.get('active_quests', []):
-        raise QuestNotFoundError(f"Quest '{quest_id}' is not an active quest")
+        raise QuestNotActiveError(f"Quest '{quest_id}' is not an active quest")
     quest_data = quest_data_dict[quest_id]
 
     character['active_quests'].remove(quest_id)
@@ -411,29 +411,28 @@ if __name__ == "__main__":
     print("=== QUEST HANDLER TEST ===")
     
     # Test data
-    # test_char = {
-    #     'level': 1,
-    #     'active_quests': [],
-    #     'completed_quests': [],
-    #     'experience': 0,
-    #     'gold': 100
-    # }
+    test_char = {
+        'level': 1,
+        'active_quests': [],
+        'completed_quests': [],
+        'experience': 0,
+        'gold': 100
+    }
     #
-    # test_quests = {
-    #     'first_quest': {
-    #         'quest_id': 'first_quest',
-    #         'title': 'First Steps',
-    #         'description': 'Complete your first quest',
-    #         'reward_xp': 50,
-    #         'reward_gold': 25,
-    #         'required_level': 1,
-    #         'prerequisite': 'NONE'
-    #     }
-    # }
-    #
-    # try:
-    #     accept_quest(test_char, 'first_quest', test_quests)
-    #     print("Quest accepted!")
-    # except QuestRequirementsNotMetError as e:
-    #     print(f"Cannot accept: {e}")
+    test_quests = {
+        'first_quest': {
+            'quest_id': 'first_quest',
+            'title': 'First Steps',
+            'description': 'Complete your first quest',
+            'reward_xp': 50,
+            'reward_gold': 25,
+            'required_level': 1,
+            'prerequisite': 'NONE'
+        }
+    }
+    try:
+        accept_quest(test_char, 'first_quest', test_quests)
+        print("Quest accepted!")
+    except QuestRequirementsNotMetError as e:
+        print(f"Cannot accept: {e}")
 
