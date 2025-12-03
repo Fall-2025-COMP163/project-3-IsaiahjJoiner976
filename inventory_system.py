@@ -334,7 +334,7 @@ def unequip_weapon(character):
             character[stat_name] -= old_stat_value
         except KeyError:
             pass
-    if character['inventory'] >= MAX_INVENTORY_SIZE:
+    if len(character['inventory']) >= MAX_INVENTORY_SIZE:
         raise InventoryFullError(f"Your inventory is full (Max: {MAX_INVENTORY_SIZE}).")
     else:
         add_item_to_inventory(character, unequipped)
@@ -371,7 +371,7 @@ def unequip_armor(character):
             character[stat_name] -= old_stat_value
         except KeyError:
             pass
-    if character['inventory'] >= MAX_INVENTORY_SIZE:
+    if len(character['inventory']) >= MAX_INVENTORY_SIZE:
         raise InventoryFullError(f"Your inventory is full (Max: {MAX_INVENTORY_SIZE}).")
     else:
         add_item_to_inventory(character, unequipped)
@@ -413,7 +413,7 @@ def purchase_item(character, item_id, item_data):
         current_gold = 0
     if current_gold < cost:
         raise InsufficientResourcesError(f"Not enough gold to buy that item. Required: {cost}, Have: {current_gold}")
-    if character['inventory'] >= MAX_INVENTORY_SIZE:
+    if len(character['inventory']) >= MAX_INVENTORY_SIZE:
         raise InventoryFullError(f"Your inventory is full (Max: {MAX_INVENTORY_SIZE}).")
     else:
         add_item_to_inventory(character, item_id)
