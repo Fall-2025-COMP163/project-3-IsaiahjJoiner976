@@ -292,7 +292,34 @@ def unequip_weapon(character):
     # Remove stat bonuses
     # Add weapon back to inventory
     # Clear equipped_weapon from character
-    pass
+    slot_key = 'weapon'
+    unequipped = None
+    old_stat_value = 0
+    try:
+        unequipped = character['equipped'][slot_key]
+    except KeyError:
+        return None
+    stat_name = 'strength'
+    try:
+        bonus_key = f'{slot_key}_bonus'
+        old_stat_value = character['equipped'][bonus_key]
+    except KeyError:
+        pass
+    if old_stat_value != 0:
+        try:
+            character[stat_name] -= old_stat_value
+        except KeyError:
+            pass
+    if character['inventory'] >= MAX_INVENTORY_SIZE:
+        raise InventoryFullError(f"Your inventory is full (Max: {MAX_INVENTORY_SIZE}).")
+    else:
+        add_item_to_inventory(character, unequipped)
+    try:
+        character['equipped'][slot_key] = None
+        character['equipped'][f'{slot_key}_bonus'] = 0
+    except KeyError:
+        pass
+    return unequipped
 
 def unequip_armor(character):
     """
@@ -302,6 +329,34 @@ def unequip_armor(character):
     Raises: InventoryFullError if inventory is full
     """
     # TODO: Implement armor unequipping
+    slot_key = 'armor'
+    unequipped = None
+    old_stat_value = 0
+    stat_name = 'max_health'
+    try:
+        unequipped = character['equipped'][slot_key]
+    except KeyError:
+        return None
+    try:
+        bonus_key = f'{slot_key}_bonus'
+        old_stat_value = character['equipped'][bonus_key]
+    except KeyError:
+        pass
+    if old_stat_value != 0:
+        try:
+            character[stat_name] -= old_stat_value
+        except KeyError:
+            pass
+    if character['inventory'] >= MAX_INVENTORY_SIZE:
+        raise InventoryFullError(f"Your inventory is full (Max: {MAX_INVENTORY_SIZE}).")
+    else:
+        add_item_to_inventory(character, unequipped)
+    try:
+        character['equipped'][slot_key] = None
+        character['equipped'][f'{slot_key}_bonus'] = 0
+    except KeyError:
+        pass
+    return unequipped
     pass
 
 # ============================================================================
@@ -361,7 +416,17 @@ def sell_item(character, item_id, item_data):
     # Calculate sell price (cost // 2)
     # Remove item from inventory
     # Add gold to character
-    pass
+    if not has_item(character, item_id):
+        raise ItemNotFoundError(f"That item is not in inventory to sell.")
+    cost = item_data['COST']
+    sell_price = cost // 2
+    remove_item_from_inventory(character, item_id)
+    try:
+        current_gold = character['gold']
+        character['gold'] = current_gold + sell_price
+    except KeyError:
+        character['gold'] = sell_price
+    return sell_price
 
 # ============================================================================
 # HELPER FUNCTIONS
