@@ -69,8 +69,8 @@ def load_quests(filename="data/quests.txt"):
                     quest_data[key] = value
                 except ValueError:
                     raise InvalidDataFormatError(f"Corrupted key-value line in quest block: {line}")
-        if required_keys - set(quest_data.keys()):
-            # Suggested by Google Gemini due to my code being flawed and stopping on the first missing key. This goes through and collects all of them.
+        # Following two lines suggested by Google Gemini due to my code being flawed and stopping on the first missing key. This goes through and collects all of them.
+        if not all(key in quest_data for key in required_keys):
             missing_keys = [key for key in required_keys if key not in quest_data]
             if missing_keys:
                     raise InvalidDataFormatError(f"Missing required keys in a quest block: {','.join(missing_keys)}")
@@ -336,7 +336,6 @@ def parse_quest_block(lines):
         if quest_data[prereq_key].upper() == "NONE":
             quest_data[prereq_key] = None
     return quest_data
-    pass
 
 def parse_item_block(lines):
     """
@@ -349,7 +348,47 @@ def parse_item_block(lines):
     Raises: InvalidDataFormatError if parsing fails
     """
     # TODO: Implement parsing logic
-    pass
+    item_data = {}
+    for line in lines:
+        clean_line = line.strip()
+        if not clean_line:
+            continue
+        if ":" in clean_line:
+            try:
+                key, value_text = line.split(":", 1)
+                key = key.strip()
+                value = value_text.strip()
+                if not key:
+                    raise InvalidDataFormatError(f"Found empty key in line: {clean_line}")
+                item_data[key] = value
+
+            except ValueError:
+                raise InvalidDataFormatError(f"Could not parse key_value pair in line: {clean_line}")
+        else:
+            raise InvalidDataFormatError(f"Line does not contain a separator (':'): {clean_line}")
+        
+    cost_key = "COST"
+    if cost_key in item_data:
+            cost_str = item_data[cost_key]
+            try:
+                item_data[cost_key] = int(cost_str)
+            except ValueError:
+                raise InvalidDataFormatError(f"Value for '{cost_key}' must be an integer: '{cost_str}'")
+            
+    effect_key = "EFFECT"
+    if effect_key in item_data:
+        effect_str = item_data[effect_key]
+        if ":" not in effect_str:
+            raise InvalidDataFormatError(f"Invalid EFFECT format in item {effect_str}. Must be 'stat:value'.")
+        try:
+            effect_stat, effect_value = effect_str.split(":", 1)
+            item_data['EFFECT'] = {
+                "stat": effect_stat.strip(),
+                "value": int(effect_value.strip())
+            }
+        except ValueError:
+            raise InvalidDataFormatError(f"Non-integer value found in EFFECT for item: {item_data['ITEM_ID']}")
+    return item_data
 
 # ============================================================================
 # TESTING
@@ -359,23 +398,23 @@ if __name__ == "__main__":
     print("=== GAME DATA MODULE TEST ===")
     
     # Test creating default files
-    # create_default_data_files()
+    create_default_data_files()
     
     # Test loading quests
-    # try:
-    #     quests = load_quests()
-    #     print(f"Loaded {len(quests)} quests")
-    # except MissingDataFileError:
-    #     print("Quest file not found")
-    # except InvalidDataFormatError as e:
-    #     print(f"Invalid quest format: {e}")
+    try:
+        quests = load_quests()
+        print(f"Loaded {len(quests)} quests")
+    except MissingDataFileError:
+        print("Quest file not found")
+    except InvalidDataFormatError as e:
+        print(f"Invalid quest format: {e}")
     
     # Test loading items
-    # try:
-    #     items = load_items()
-    #     print(f"Loaded {len(items)} items")
-    # except MissingDataFileError:
-    #     print("Item file not found")
-    # except InvalidDataFormatError as e:
-    #     print(f"Invalid item format: {e}")
+    try:
+        items = load_items()
+        print(f"Loaded {len(items)} items")
+    except MissingDataFileError:
+        print("Item file not found")
+    except InvalidDataFormatError as e:
+        print(f"Invalid item format: {e}")
 
