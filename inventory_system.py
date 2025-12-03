@@ -138,17 +138,41 @@ def use_item(character, item_id, item_data):
     # Apply effect to character
     # Remove item from inventory
     if item_id not in character['inventory']:
-        raise ItemNotFoundError(f"{character['name']} does not have that item!")
-    if item_data['TYPE'] != 'consumable':
-        raise InvalidItemTypeError(f"That item cannot be consumed!")
-    effect = item_data['EFFECT']
-    stat_name = effect['stat']
-    stat_value = effect['value']
+        raise ItemNotFoundError(f"Item '{item_id}' not found in inventory.")
+
+    item_type = item_data.get('type')
+    if item_type != 'consumable':
+        raise InvalidItemTypeError(f"Item '{item_id}' is of type '{item_type}' and cannot be used.")
+
+    effect_str = item_data.get('effect')
+    if not effect_str or ':' not in effect_str:
+        return f"Item '{item_id}' consumed but had no recognizable effect."
+
+    try:
+        stat_name, value_str = effect_str.split(':')
+        value = int(value_str)
+    except ValueError:
+        return f"Item '{item_id}' consumed but effect format was invalid: '{effect_str}'."
+
+    
+    stat_name = stat_name.strip()
+    
+    
     if stat_name in character:
-        if isinstance(character[stat_name], (int, float)):
-            character[stat_name] += stat_value
-    remove_item_from_inventory(character, item_id)
-    return f"{character['name']} gained {stat_value} {stat_name}"
+        character[stat_name] += value
+        
+        # Google Gemini suggested for overhealing
+        if stat_name == 'health' and 'max_health' in character and character['health'] > character['max_health']:
+            character['health'] = character['max_health']
+            return_message = f"Used {item_id}. Restored {value} {stat_name}, healing up to max health ({character['max_health']})."
+        else:
+            return_message = f"Used {item_id}. Applied effect: +{value} to {stat_name}."
+    else:
+        return_message = f"Used {item_id}. Effect targets unknown stat: {stat_name}."
+
+
+    character['inventory'].remove(item_id)
+    return return_message
 
 def equip_weapon(character, item_id, item_data):
     """
@@ -483,24 +507,24 @@ if __name__ == "__main__":
     print("=== INVENTORY SYSTEM TEST ===")
     
     # Test adding items
-    # test_char = {'inventory': [], 'gold': 100, 'health': 80, 'max_health': 80}
+    test_char = {'inventory': [], 'gold': 100, 'health': 80, 'max_health': 80}
     # 
-    # try:
-    #     add_item_to_inventory(test_char, "health_potion")
-    #     print(f"Inventory: {test_char['inventory']}")
-    # except InventoryFullError:
-    #     print("Inventory is full!")
+    try:
+        add_item_to_inventory(test_char, "health_potion")
+        print(f"Inventory: {test_char['inventory']}")
+    except InventoryFullError:
+        print("Inventory is full!")
     
     # Test using items
-    # test_item = {
-    #     'item_id': 'health_potion',
-    #     'type': 'consumable',
-    #     'effect': 'health:20'
-    # }
+    test_item = {
+        'item_id': 'health_potion',
+        'type': 'consumable',
+        'effect': 'health:20'
+    }
     # 
-    # try:
-    #     result = use_item(test_char, "health_potion", test_item)
-    #     print(result)
-    # except ItemNotFoundError:
-    #     print("Item not found")
+    try:
+        result = use_item(test_char, "health_potion", test_item)
+        print(result)
+    except ItemNotFoundError:
+        print("Item not found")
 
