@@ -203,11 +203,11 @@ def equip_weapon(character, item_id, item_data):
     if item_id not in character['inventory']:
         raise ItemNotFoundError(f"{item_id} not found in {character['name']}'s inventory.")
     slot_key = 'weapon'
-    item_type = item_data['TYPE'].lower()
+    item_type = item_data['type'].lower()
     if item_type != slot_key:
-        raise InvalidItemTypeError(f"'{item_data['NAME']}' is a '{item_type}' not a '{slot_key}'")
+        raise InvalidItemTypeError(f"'{item_data['name']}' is a '{item_type}' not a '{slot_key}'")
     
-    effect = item_data['EFFECT']
+    effect = item_data['effect']
     stat_name = effect['stat']
     stat_value = effect['value']
     old_weapon = None
@@ -264,13 +264,13 @@ def equip_armor(character, item_id, item_data):
     # TODO: Implement armor equipping
     # Similar to equip_weapon but for armor
     if item_id not in character['inventory']:
-        raise ItemNotFoundError(f"{item_id} not found in {character['name']}'s inventory.")
+        raise ItemNotFoundError(f"{item_id} not found in your inventory.")
     slot_key = 'armor'
-    item_type = item_data['TYPE'].lower()
+    item_type = item_data['type'].lower()
     if item_type != slot_key:
-        raise InvalidItemTypeError(f"'{item_data['NAME']}' is a '{item_type}' not a '{slot_key}'")
+        raise InvalidItemTypeError(f"'{item_data['item_id']}' is a '{item_type}' not a '{slot_key}'")
     
-    effect = item_data['EFFECT']
+    effect = item_data['effect']
     stat_name = effect['stat']
     stat_value = effect['value']
     old_armor = None
@@ -300,7 +300,7 @@ def equip_armor(character, item_id, item_data):
     character['equipped'][slot_key] = item_id
     character['equipped'][f'{slot_key}_bonus'] = stat_value
     remove_item_from_inventory(character, item_id)
-    equip_message = f"Equipped {item_data['NAME']}, granting {stat_value} {stat_name}."
+    equip_message = f"Equipped {item_data['item_id']}, granting {stat_value} {stat_name}."
     # Suggested by Google Gemini. Returns both messages or just equip message
     return unequip_message + (" " if unequip_message else "") + equip_message
 
@@ -442,7 +442,7 @@ def sell_item(character, item_id, item_data):
     # Add gold to character
     if not has_item(character, item_id):
         raise ItemNotFoundError(f"That item is not in inventory to sell.")
-    cost = item_data['COST']
+    cost = item_data['cost']
     sell_price = cost // 2
     remove_item_from_inventory(character, item_id)
     try:
@@ -469,7 +469,16 @@ def parse_item_effect(effect_string):
     # TODO: Implement effect parsing
     # Split on ":"
     # Convert value to integer
-    pass
+    if ':' not in effect_string:
+        raise ValueError(f"Invalid effect string format: {effect_string}")
+    parts = effect_string.split(':')
+    stat_name = parts[0].strip()
+    value_str = parts[1].strip()
+    try:
+        value = int(value_str)
+    except ValueError:
+        raise ValueError(f"Effect value not a valid integer: {value_str}")
+    return (stat_name, value)
 
 def apply_stat_effect(character, stat_name, value):
     """
@@ -482,6 +491,14 @@ def apply_stat_effect(character, stat_name, value):
     # TODO: Implement stat application
     # Add value to character[stat_name]
     # If stat is health, ensure it doesn't exceed max_health
+    valid_stats = ["health", "max_health", "strength", "magic"]
+    if stat_name not in valid_stats:
+        print(f"Not a valid stat: {stat_name}, valid stats: {valid_stats}")
+        return
+    character[stat_name] += value
+    if stat_name == 'health' and 'max_health' in character:
+        if character['health'] > character['max_health']:
+            character['health'] = character['max_health']
     pass
 
 def display_inventory(character, item_data_dict):
@@ -497,7 +514,27 @@ def display_inventory(character, item_data_dict):
     # TODO: Implement inventory display
     # Count items (some may appear multiple times)
     # Display with item names from item_data_dict
-    pass
+    # Suggested by Google Gemini to avoid KeyError
+    inventory = character.get('inventory', [])
+    if not inventory:
+        print("Inventory is empty.")
+        return
+
+    print("--- Character Inventory ---")
+    item_counts = {}
+    for item_id in inventory:
+        if item_id in item_counts:
+            item_counts[item_id] += 1
+        else:
+            item_counts[item_id] = 1
+    for item_id, count in item_counts.items():
+        # Gemini suggested .get() and the use of defaults
+        item_info = item_data_dict.get(item_id, {'name': 'Unknown Item', 'type': 'N/A'})
+        
+        item_name = item_info.get('name', 'Unknown Item')
+        item_type = item_info.get('type', 'N/A')
+        
+        print(f"* {item_name} (x{count}) - Type: {item_type}")
 
 # ============================================================================
 # TESTING
