@@ -137,7 +137,18 @@ def use_item(character, item_id, item_data):
     # Parse effect (format: "stat_name:value" e.g., "health:20")
     # Apply effect to character
     # Remove item from inventory
-    pass
+    if item_id not in character['inventory']:
+        raise ItemNotFoundError(f"{character['name']} does not have that item!")
+    if item_data['TYPE'] != 'consumable':
+        raise InvalidItemTypeError(f"That item cannot be consumed!")
+    effect = item_data['EFFECT']
+    stat_name = effect['stat']
+    stat_value = effect['value']
+    if stat_name in character:
+        if isinstance(character[stat_name], (int, float)):
+            character[stat_name] += stat_value
+    remove_item_from_inventory(character, item_id)
+    return f"{character['name']} gained {stat_value} {stat_name}"
 
 def equip_weapon(character, item_id, item_data):
     """
@@ -165,7 +176,46 @@ def equip_weapon(character, item_id, item_data):
     # Parse effect and apply to character stats
     # Store equipped_weapon in character dictionary
     # Remove item from inventory
-    pass
+    if item_id not in character['inventory']:
+        raise ItemNotFoundError(f"{item_id} not found in {character['name']}'s inventory.")
+    slot_key = 'weapon'
+    item_type = item_data['TYPE'].lower()
+    if item_type != slot_key:
+        raise InvalidItemTypeError(f"'{item_data['NAME']}' is a '{item_type}' not a '{slot_key}'")
+    
+    effect = item_data['EFFECT']
+    stat_name = effect['stat']
+    stat_value = effect['value']
+    old_weapon = None
+    try: 
+        old_weapon = character['equipped']['weapon']
+    except KeyError:
+        pass
+    unequip_message = ""
+    if old_weapon:
+        old_stat_name = stat_name
+        old_stat_value = 0
+        bonus_key = f'{slot_key}_bonus'
+        try:
+            equipped_data = character['equipped']
+            old_stat_value = equipped_data[bonus_key]
+        except KeyError:
+            pass
+        if old_stat_value != 0 and old_stat_name in character:
+            character[old_stat_name] -= old_stat_value
+            unequip_message = f"Unequipped {old_weapon}, removing {old_stat_value} {old_stat_name}."
+        add_item_to_inventory(character, old_weapon)
+    
+    if stat_name in character:
+        character[stat_name] += stat_value
+    if 'equipped' not in character:
+        character['equipped'] = {}
+    character['equipped'][slot_key] = item_id
+    character['equipped'][f'{slot_key}_bonus'] = stat_value
+    remove_item_from_inventory(character, item_id)
+    equip_message = f"Equipped {item_data['NAME']}, granting {stat_value} {stat_name}."
+    # Suggested by Google Gemini. Returns both messages or just equip message
+    return unequip_message + (" " if unequip_message else "") + equip_message
 
 def equip_armor(character, item_id, item_data):
     """
@@ -189,7 +239,46 @@ def equip_armor(character, item_id, item_data):
     """
     # TODO: Implement armor equipping
     # Similar to equip_weapon but for armor
-    pass
+    if item_id not in character['inventory']:
+        raise ItemNotFoundError(f"{item_id} not found in {character['name']}'s inventory.")
+    slot_key = 'armor'
+    item_type = item_data['TYPE'].lower()
+    if item_type != slot_key:
+        raise InvalidItemTypeError(f"'{item_data['NAME']}' is a '{item_type}' not a '{slot_key}'")
+    
+    effect = item_data['EFFECT']
+    stat_name = effect['stat']
+    stat_value = effect['value']
+    old_armor = None
+    try: 
+        old_armor = character['equipped']['armor']
+    except KeyError:
+        pass
+    unequip_message = ""
+    if old_armor:
+        old_stat_name = stat_name
+        old_stat_value = 0
+        bonus_key = f'{slot_key}_bonus'
+        try:
+            equipped_data = character['equipped']
+            old_stat_value = equipped_data[bonus_key]
+        except KeyError:
+            pass
+        if old_stat_value != 0 and old_stat_name in character:
+            character[old_stat_name] -= old_stat_value
+            unequip_message = f"Unequipped {old_armor}, removing {old_stat_value} {old_stat_name}."
+        add_item_to_inventory(character, old_armor)
+    
+    if stat_name in character:
+        character[stat_name] += stat_value
+    if 'equipped' not in character:
+        character['equipped'] = {}
+    character['equipped'][slot_key] = item_id
+    character['equipped'][f'{slot_key}_bonus'] = stat_value
+    remove_item_from_inventory(character, item_id)
+    equip_message = f"Equipped {item_data['NAME']}, granting {stat_value} {stat_name}."
+    # Suggested by Google Gemini. Returns both messages or just equip message
+    return unequip_message + (" " if unequip_message else "") + equip_message
 
 def unequip_weapon(character):
     """
