@@ -61,7 +61,7 @@ def remove_item_from_inventory(character, item_id):
         character['inventory'].remove(item_id)
         return True
     else:
-        raise ItemNotFoundError(f"{item_id} not found in {character['name']}'s inventory")
+        raise ItemNotFoundError(f"{item_id} not found in your inventory")
 
 def has_item(character, item_id):
     """
