@@ -38,7 +38,7 @@ def add_item_to_inventory(character, item_id):
     # Check if inventory is full (>= MAX_INVENTORY_SIZE)
     # Add item_id to character['inventory'] list
     if len(character['inventory']) >= MAX_INVENTORY_SIZE:
-        raise InventoryFullError(f"{character['NAME']}'s inventory is full (Max: {MAX_INVENTORY_SIZE}).")
+        raise InventoryFullError(f"Your inventory is full (Max: {MAX_INVENTORY_SIZE}).")
     
     character['inventory'].append(item_id)
     return True
