@@ -85,8 +85,8 @@ def load_quests(filename="data/quests.txt"):
             raise InvalidDataFormatError(f"Non-integer value found for XP, GOLD, or LEVEL in quest: {quest_id}")
         if quest_data['PREREQUISITE'].upper() == 'NONE':
             quest_data['PREREQUISITE'] = None
-            # Google Gemini suggested for redundancy.
-            del quest_data['QUEST_ID']
+        # Google Gemini suggested for redundancy.
+        del quest_data['QUEST_ID']
         all_quests[quest_id] = quest_data
     return all_quests
 
@@ -204,8 +204,8 @@ def validate_item_data(item_dict):
     Raises: InvalidDataFormatError if missing required fields or invalid type
     """
     # TODO: Implement validation
-    required_keys = ["item_id", "name", "type", "effect", "cost", "description"]
-    valid_types = ["weapons", "armor", "consumable"]
+    required_keys = ["ITEM_ID", "NAME", "TYPE", "EFFECT", "COST", "DESCRIPTION"]
+    valid_types = ["weapon", "armor", "consumable"]
     
     missing_keys = [key for key in required_keys if key not in item_dict]
     if missing_keys:
@@ -260,8 +260,8 @@ def create_default_data_files():
     """
 
     data_dir = "data"
-    quests_file = os.path.join(data_dir, "_quests.txt")
-    items_file = os.path.join(data_dir, "_items.txt")
+    quests_file = os.path.join(data_dir, "quests.txt")
+    items_file = os.path.join(data_dir, "items.txt")
     try:
         os.makedirs(data_dir, exist_ok=True)
         print(f"Created directory: {data_dir}")
