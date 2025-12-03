@@ -70,7 +70,8 @@ def has_item(character, item_id):
     Returns: True if item in inventory, False otherwise
     """
     # TODO: Implement item check
-    pass
+    inventory = character['inventory']
+    return item_id in inventory
 
 def count_item(character, item_id):
     """
@@ -80,7 +81,8 @@ def count_item(character, item_id):
     """
     # TODO: Implement item counting
     # Use list.count() method
-    pass
+    inventory = character['inventory']
+    return inventory.count(item_id)
 
 def get_inventory_space_remaining(character):
     """
