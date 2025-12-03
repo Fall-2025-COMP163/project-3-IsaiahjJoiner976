@@ -91,7 +91,9 @@ def get_inventory_space_remaining(character):
     Returns: Integer representing available slots
     """
     # TODO: Implement space calculation
-    pass
+    inventory = len(character['inventory'])
+    space = MAX_INVENTORY_SIZE - inventory
+    return space
 
 def clear_inventory(character):
     """
@@ -102,7 +104,10 @@ def clear_inventory(character):
     # TODO: Implement inventory clearing
     # Save current inventory before clearing
     # Clear character's inventory list
-    pass
+    current_inv = character['inventory']
+    removed_inv = list(current_inv)
+    current_inv.clear()
+    return removed_inv
 
 # ============================================================================
 # ITEM USAGE
