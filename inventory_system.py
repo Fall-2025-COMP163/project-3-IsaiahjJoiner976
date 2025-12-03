@@ -39,8 +39,7 @@ def add_item_to_inventory(character, item_id):
     # Add item_id to character['inventory'] list
     if len(character['inventory']) >= MAX_INVENTORY_SIZE:
         raise InventoryFullError(f"{character['name']}'s inventory is full (Max: {MAX_INVENTORY_SIZE}).")
-    if 'inventory' not in character:
-        character['inventory'] = []
+    
     character['inventory'].append(item_id)
     return True
 
@@ -58,7 +57,11 @@ def remove_item_from_inventory(character, item_id):
     # TODO: Implement item removal
     # Check if item exists in inventory
     # Remove item from list
-    pass
+    if item_id in character['inventory']:
+        character['inventory'].remove(item_id)
+        return True
+    else:
+        raise ItemNotFoundError(f"{item_id} not found in {character['name']}'s inventory")
 
 def has_item(character, item_id):
     """
