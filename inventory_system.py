@@ -327,7 +327,22 @@ def purchase_item(character, item_id, item_data):
     # Check if inventory has space
     # Subtract gold from character
     # Add item to inventory
-    pass
+    cost = item_data['COST']
+    try:
+        current_gold = character['gold']
+    except KeyError:
+        current_gold = 0
+    if current_gold < cost:
+        raise InsufficientResourcesError(f"Not enough gold to buy that item. Required: {cost}, Have: {current_gold}")
+    if character['inventory'] >= MAX_INVENTORY_SIZE:
+        raise InventoryFullError(f"Your inventory is full (Max: {MAX_INVENTORY_SIZE}).")
+    else:
+        add_item_to_inventory(character, item_id)
+    try:
+        character['gold'] -= cost
+    except KeyError:
+        character['gold'] = 0 - cost
+    return True
 
 def sell_item(character, item_id, item_data):
     """
