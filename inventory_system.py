@@ -406,7 +406,7 @@ def purchase_item(character, item_id, item_data):
     # Check if inventory has space
     # Subtract gold from character
     # Add item to inventory
-    cost = item_data['COST']
+    cost = item_data['cost']
     try:
         current_gold = character['gold']
     except KeyError:
